@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شجرة العائلة - بركاش</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <header class="top-bar">
+            <div class="brand">
+                <div class="logo-icon">🌳</div>
+                <h1>شجرة العائلة - بركاش</h1>
+            </div>
+            <nav class="top-nav">
+                <button class="nav-btn" id="searchBtn">
+                    <span class="icon">🔍</span>
+                    <span>بحث</span>
+                </button>
+                <button class="nav-btn" id="addBtn">
+                    <span class="icon">➕</span>
+                    <span>إضافة عضو</span>
+                </button>
+                <button class="nav-btn" id="settingsBtn">
+                    <span class="icon">⚙️</span>
+                    <span>الإعدادات</span>
+                </button>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <aside class="stats-panel">
+                <h2 class="stats-title">إحصائيات الشجرة</h2>
+                <div class="stat-row">
+                    <span class="stat-label">إجمالي الأعضاء:</span>
+                    <span class="stat-value" id="totalMembers">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">الوفيات:</span>
+                    <span class="stat-value" id="deceasedCount">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">على قيد الحياة:</span>
+                    <span class="stat-value" id="livingCount">0</span>
+                </div>
+                <div class="legend">
+                    <h3>دليل الرموز</h3>
+                    <div class="legend-item">
+                        <span class="legend-dot deceased-dot"></span>
+                        <span>متوفى</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot living-dot"></span>
+                        <span>على قيد الحياة</span>
+                    </div>
+                </div>
+            </aside>
+
+            <section class="tree-section">
+                <div class="map-background" aria-hidden="true">
+                    <svg viewBox="0 0 600 700" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="mapGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#3d5a3d" stop-opacity="0.35"/>
+                                <stop offset="100%" stop-color="#1f2f1f" stop-opacity="0.55"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M 50,80 Q 80,40 180,60 Q 280,30 380,70 Q 480,50 520,120 L 540,180 Q 555,240 530,300 L 520,380 Q 510,440 480,500 L 460,560 Q 440,610 380,640 L 320,650 Q 240,660 180,620 L 120,580 Q 80,540 70,480 L 60,400 Q 40,320 50,240 Z" 
+                              fill="url(#mapGradient)" 
+                              stroke="#8b6914" 
+                              stroke-width="2" 
+                              stroke-opacity="0.4"/>
+                        <g class="map-pins">
+                            <circle cx="200" cy="550" r="8" fill="#d4a017" opacity="0.7"/>
+                            <text x="220" y="555" fill="#d4a017" font-size="16" font-weight="700">Tanalt</text>
+                            <circle cx="180" cy="200" r="8" fill="#d4a017" opacity="0.7"/>
+                            <text x="200" y="205" fill="#d4a017" font-size="16" font-weight="700">Casablanca</text>
+                        </g>
+                    </svg>
+                </div>
+
+                <div class="tree-container" id="treeContainer">
+                    <div class="zoom-controls">
+                        <button class="zoom-btn" id="zoomIn" title="تكبير">+</button>
+                        <button class="zoom-btn" id="zoomOut" title="تصغير">−</button>
+                        <button class="zoom-btn" id="zoomReset" title="إعادة الضبط">⟲</button>
+                    </div>
+
+                    <div class="tree-canvas" id="treeCanvas">
+                        <svg class="connections-svg" id="connectionsSvg" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <filter id="lineGlow">
+                                    <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                                    <feMerge>
+                                        <feMergeNode in="coloredBlur"/>
+                                        <feMergeNode in="SourceGraphic"/>
+                                    </feMerge>
+                                </filter>
+                            </defs>
+                            <g id="connectionsGroup" stroke="#e8d5a8" stroke-width="3" fill="none" filter="url(#lineGlow)"></g>
+                        </svg>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="bottom-bar">
+            <div class="footer-content">
+                <span class="footer-text">© 2026 عائلة بركاش - جميع الحقوق محفوظة</span>
+                <span class="footer-quote">"وَجَعَلْنَاكُمْ شُعُوبًا وَقَبَائِلَ لِتَعَارَفُوا"</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal for member details -->
+    <div class="modal-overlay" id="memberModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">×</button>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- Search Panel -->
+    <div class="search-panel" id="searchPanel">
+        <div class="search-header">
+            <h3>البحث في العائلة</h3>
+            <button class="search-close" id="searchClose">×</button>
+        </div>
+        <input type="text" id="searchInput" class="search-input" placeholder="ابحث عن اسم...">
+        <div class="search-results" id="searchResults"></div>
+    </div>
+
+    <!-- Add/Edit Member Form -->
+    <div class="form-panel" id="addPanel">
+        <div class="form-header">
+            <h3 id="formTitle">إضافة عضو جديد</h3>
+            <button class="form-close" id="addClose">×</button>
+        </div>
+        <form id="addForm" class="add-form">
+            <input type="hidden" name="editId" id="editId" value="">
+
+            <div class="image-upload-section">
+                <label class="image-upload-label">
+                    <div class="image-preview" id="imagePreview">
+                        <span class="image-preview-text">انقر لاختيار صورة</span>
+                    </div>
+                    <input type="file" id="imageFile" accept="image/*" style="display:none">
+                </label>
+                <div class="image-upload-actions">
+                    <button type="button" class="btn-tiny" id="chooseImageBtn">📷 اختيار صورة</button>
+                    <button type="button" class="btn-tiny btn-tiny-danger" id="removeImageBtn" style="display:none">🗑️ إزالة</button>
+                </div>
+            </div>
+
+            <label>الاسم الكامل *
+                <input type="text" name="name" id="fieldName" required>
+            </label>
+            <label>الصفة *
+                <select name="role" id="fieldRole" required>
+                    <option value="الأب">الأب</option>
+                    <option value="الأم">الأم</option>
+                    <option value="ابن">ابن</option>
+                    <option value="ابنة">ابنة</option>
+                    <option value="حفيد">حفيد</option>
+                    <option value="حفيدة">حفيدة</option>
+                    <option value="زوج">زوج</option>
+                    <option value="زوجة">زوجة</option>
+                </select>
+            </label>
+            <label>الجنس
+                <select name="gender" id="fieldGender">
+                    <option value="male">ذكر</option>
+                    <option value="female">أنثى</option>
+                </select>
+            </label>
+            <label>مكان الازدياد
+                <input type="text" name="birthPlace" id="fieldBirthPlace" placeholder="مثل: تنالت">
+            </label>
+            <label>تاريخ الازدياد
+                <input type="text" name="birthDate" id="fieldBirthDate" placeholder="YYYY/MM/DD أو YYYY">
+            </label>
+
+            <div class="form-divider">
+                <span>معلومات الوالدين</span>
+            </div>
+
+            <label>اسم الاب
+                <input type="text" name="fatherName" id="fieldFatherName" placeholder="اسم الوالد">
+            </label>
+            <label>اسم الام
+                <input type="text" name="motherName" id="fieldMotherName" placeholder="اسم الوالدة">
+            </label>
+
+            <div class="form-divider">
+                <span>معلومات الزواج</span>
+            </div>
+
+            <div id="spousesList" class="spouses-list"></div>
+
+            <label>إضافة زوج/ة (بالاسم فقط)
+                <div class="add-spouse-row">
+                    <input type="text" id="fieldSpouseName" placeholder="اسم الزوج أو الزوجة">
+                    <button type="button" class="btn-tiny" id="addSpouseToList">+ إضافة</button>
+                </div>
+            </label>
+
+            <div class="form-divider">
+                <span>معلومات الوفاة (اختياري)</span>
+            </div>
+
+            <label>مكان الوفاة
+                <input type="text" name="deathPlace" id="fieldDeathPlace" placeholder="مثل: الدار البيضاء">
+            </label>
+            <label>تاريخ الوفاة
+                <input type="text" name="deathDate" id="fieldDeathDate" placeholder="YYYY/MM/DD">
+            </label>
+
+            <label>ملاحظات
+                <textarea name="notes" id="fieldNotes" rows="2" placeholder="أي ملاحظات إضافية..."></textarea>
+            </label>
+
+            <input type="hidden" name="photo" id="fieldPhoto" value="images/default.svg">
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary" id="saveBtn">حفظ</button>
+                <button type="button" class="btn-secondary" id="addCancel">إلغاء</button>
+            </div>
+            <button type="button" class="btn-danger" id="deleteBtn" style="display:none">🗑️ حذف هذا العضو</button>
+        </form>
+    </div>
+
+    <!-- Settings Panel -->
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-header">
+            <h3>الإعدادات</h3>
+            <button class="settings-close" id="settingsClose">×</button>
+        </div>
+        <div class="settings-content">
+            <div class="setting-item">
+                <label>لون الخلفية</label>
+                <div class="color-options">
+                    <button class="color-option" data-color="#2a3a2e" style="background:#2a3a2e"></button>
+                    <button class="color-option" data-color="#1e3a5f" style="background:#1e3a5f"></button>
+                    <button class="color-option" data-color="#3d2817" style="background:#3d2817"></button>
+                    <button class="color-option" data-color="#2d1b3d" style="background:#2d1b3d"></button>
+                </div>
+            </div>
+            <div class="setting-item">
+                <label>حجم الخط</label>
+                <input type="range" id="fontSize" min="12" max="24" value="17">
+            </div>
+            <div class="setting-item">
+                <label>إدارة البيانات</label>
+                <div class="data-actions">
+                    <button class="btn-data" id="exportBtn">📥 تصدير البيانات (JSON)</button>
+                    <label class="btn-data">
+                        📤 استيراد البيانات
+                        <input type="file" id="importFile" accept=".json" style="display:none">
+                    </label>
+                    <button class="btn-data btn-data-danger" id="resetBtn">🔄 إعادة تعيين</button>
+                </div>
+            </div>
+            <div class="setting-item">
+                <label>المشاركة والإرسال</label>
+                <div class="data-actions">
+                    <button class="btn-data btn-data-primary" id="exportHtmlBtn">🌐 تصدير HTML كامل (مع الصور)</button>
+                    <button class="btn-data btn-data-primary" id="emailBtn">📧 إرسال بالبريد الإلكتروني</button>
+                </div>
+                <small class="setting-hint">يحتوي الملف على جميع الصور والبيانات مدمجة. يمكن فتحه على أي جهاز.</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Context Menu -->
+    <div class="context-menu" id="contextMenu">
+        <button class="context-item" data-action="addChild">👶 إضافة ابن/ابنة</button>
+        <button class="context-item" data-action="addSpouse">💑 إضافة زوج/ة</button>
+        <button class="context-item" data-action="edit">✏️ تعديل</button>
+        <button class="context-item context-danger" data-action="delete">🗑️ حذف</button>
+    </div>
+
+    <script src="js/family-data.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>
